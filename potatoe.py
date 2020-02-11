@@ -1,11 +1,36 @@
 import random
-f = open('potatoe.txt','r')
-
-quoteL = []
-
-for line in f:
-    quoteL.append(line.rstrip()),
-
+quoteL = [
+"What a waste it is to lose one's mind. Or not to have a mind is being very wasteful. How true that is.",
+"I believe we are on an irreversible trend toward more freedom and democracy - but that could change.",
+"I have made good judgements in the Past. I have made good judgements in the Future.",
+"Republicans understand the importance of bondage between a mother and child.",
+"One word sums up probably the responsibility of any vice-president, and that one word is 'to be prepared'.",
+"Verbosity leads to unclear, inarticulate things.",
+"The future will be better tomorrow.",
+"We're going to have the best-educated American people in the world.",
+"I stand by all the misstatements that I've made.",
+"For NASA, space is still a high priority.",
+"The future will be better tomorrow.",
+"People that are really very weird can get into sensitive positions and have a tremendous impact on history.",
+"The American people would not want to know of any misquotes that Dan Quayle may or may not make.",
+"We don't want to go back to tomorrow, we want to go forward.",
+"We have a firm commitment to NATO, we are a *part* of NATO. We have a firm commitment to Europe. We are a *part* of Europe.",
+"We're all capable of mistakes, but I do not care to enlighten you on the mistakes we may or may not have made.",
+"Welcome to President Bush, Mrs. Bush, and my fellow astronauts.",
+"[It's] time for the human race to enter the solar system.",
+"Verbosity leads to unclear, inarticulate things. ",
+"One word sums up probably the responsibility of any vice president, and that one word is 'to be prepared'. ",
+"Illegitimacy is something we should talk about in terms of not having it. ",
+"I believe we are on an irreversible trend toward more freedom and democracy - but that could change. ",
+"Mars is essentially in the same orbit... Mars is somewhat the same distance from the Sun, which is very important. We have seen pictures where there are canals, we believe, and water. If there is water, that means there is oxygen. If oxygen, that means we can breathe. ",
+"Murphy Brown is doing better than I am. At least she knows she still has a job next year. ",
+"The Holocaust was an obscene period in our nation's history. I mean in this century's history. But we all lived in this century. I didn't live in this century. ",
+"Public speaking is very easy. ",
+"I stand by all the misstatements that I've made. ",
+"We're going to have the best-educated American people in the world. ",
+"Quite frankly, teachers are the only profession that teach our children. ",
+"We are ready for any unforeseen event that may or may not occur. "
+        ]
 toread = random.randint(0,len(quoteL)) - 1
 
 print(quoteL[toread])

@@ -1,3 +1,3 @@
 # potatoe
-# potatoe
-# potatoe
+
+spits out a dan quayle quote.
