@@ -1,3 +1,7 @@
+## a list of dan quayle quotes, separated by newline
+## do not modify this file
+## if you would like to add quotes, create a file located at /var/lib/potatoe/quotes.txt
+
 What a waste it is to lose one's mind. Or not to have a mind is being very wasteful. How true that is.
 I believe we are on an irreversible trend toward more freedom and democracy - but that could change.
 I have made good judgements in the Past. I have made good judgements in the Future.

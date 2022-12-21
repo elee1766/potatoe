@@ -59,7 +59,8 @@ def loadFile(path, quoteL):
             content = f.readlines()
             for k in content:
                 if len(content) > 4:
-                    quoteL.append(k.replace("\n",""))
+                    if content[0] != "#":
+                        quoteL.append(k.replace("\n",""))
     except:
         pass
 def main():
