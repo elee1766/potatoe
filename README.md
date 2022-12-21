@@ -4,6 +4,6 @@ spits out a dan quayle quote.
 
 
 
-you can add quotes, separated by new line, in
+you can add quotes, separated by new line, in `/usr/lib/potatoe/quotes.txt`
 
-/usr/lib/potatoe/quotes.txt
+prs welcome

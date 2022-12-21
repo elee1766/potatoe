@@ -1,0 +1,35 @@
+# Maintainer: Your Name <a@tuxpa.in>
+pkgname="potatoe"
+pkgver=0.0.1
+pkgrel=1
+epoch=1
+pkgdesc=""
+arch=("x86_64","amd64")
+url="https://github.com/ledgerwatch/erigon"
+license=('GPL')
+depends=(python)
+source=("$pkgname-$pkgver.tar.gz"
+        "$pkgname-$pkgver.patch")
+noextract=()
+sha256sums=('dd549a1a3a7b14efc2b4e683da312500386346b1a0a7e20a5fb2c26635a941f3')
+
+prepare() {
+	cd "$pkgname-$pkgver"
+	patch -p1 -i "$srcdir/$pkgname-$pkgver.patch"
+}
+
+build() {
+	cd "$pkgname-$pkgver"
+	./configure --prefix=/usr
+	make
+}
+
+check() {
+	cd "$pkgname-$pkgver"
+	make -k check
+}
+
+package() {
+	cd "$pkgname-$pkgver"
+	make DESTDIR="$pkgdir/" install
+}
