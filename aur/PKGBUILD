@@ -1,6 +1,6 @@
 # Maintainer: a <a@tuxpa.in>
 pkgname="potatoe"
-pkgver=0.0.2
+pkgver=0.0.3
 pkgrel=1
 epoch=1
 pkgdesc="Prints a potatoe with a DQ quote. Configurable!"
