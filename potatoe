@@ -2,15 +2,18 @@
 import random
 import sys
 import textwrap
+import argparse
+
 
 def terminal_size():
     w = 100
     h = 100
     try:
-      import fcntl, termios, struct
-      h, w, hp, wp = struct.unpack('HHHH',
-          fcntl.ioctl(0, termios.TIOCGWINSZ,
-          struct.pack('HHHH', 0, 0, 0, 0)))
+        import fcntl
+        import termios
+        import struct
+        h, w, _, _ = struct.unpack('HHHH', fcntl.ioctl(0, termios.TIOCGWINSZ,
+                                   struct.pack('HHHH', 0, 0, 0, 0)))
     except:
         pass
     return w, h
@@ -25,9 +28,10 @@ tmpl = r'''
          \__    \    -   o //
           -===============-       - dan quayle'''
 
+
 def show(quote, width):
     out = ""
-    wraps = textwrap.wrap(quote,width)
+    wraps = textwrap.wrap(quote, width)
     if len(wraps) == 1:
         wraps.append("")
     maxwidth = len(wraps[0])
@@ -42,7 +46,7 @@ def show(quote, width):
             out = out + "\\ "
         else:
             out = out + "| "
-        out = out + line.ljust(maxwidth," ")
+        out = out + line.ljust(maxwidth, " ")
         if idx == 0:
             out = out + " \\"
         elif (idx == (len(wraps) - 1)):
@@ -54,10 +58,11 @@ def show(quote, width):
 
     out = out + tmpl
 
-
     print(out)
 
 # get the quote list
+
+
 def loadFile(path, quoteL):
     try:
         with open(path) as f:
@@ -65,10 +70,17 @@ def loadFile(path, quoteL):
             for k in content:
                 if len(k) > 4:
                     if k[0] != "#":
-                        quoteL.append(k.replace("\n",""))
+                        quoteL.append(k.replace("\n", ""))
     except:
         pass
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-t", "--text",
+                        help="show only the text",
+                        action="store_true")
+    args = parser.parse_args()
     (w, h) = terminal_size()
     defaultFill = 0.64 * w
     quoteL = []
@@ -80,9 +92,12 @@ def main():
         loadFile(fileName, quoteL)
     # ok we loaded the quote list, now filter unique ones
     quoteL = list(set(quoteL))
-    ## now select a random one
-    toread = random.randint(0,len(quoteL)-1)
+    # now select a random one
+    toread = random.randint(0, len(quoteL)-1)
     selected = quoteL[toread]
+    if args.text:
+        print(selected)
+        return
     show(selected, defaultFill)
     return 0
 
