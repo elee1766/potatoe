@@ -1,6 +1,6 @@
 .SILENT: release
 
-pkgver=0.0.1
+pkgver=0.0.2
 
 release:
 	sha256sum potatoe

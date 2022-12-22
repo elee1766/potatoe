@@ -1,6 +1,6 @@
 # Maintainer: Your Name <a@tuxpa.in>
 pkgname="potatoe"
-pkgver=0.0.1
+pkgver=0.0.2
 pkgrel=1
 epoch=1
 pkgdesc=""
