@@ -18,7 +18,6 @@ sha256sums=(
   '204e3ea720c724b0023f0ab39ea21c0a7973ae121731c0d01a21c736a6709bd1'
 )
 
-
 package() {
 	install -Dm755 potatoe "${pkgdir}"/usr/bin/potatoe
   install -Dm755 quotes.txt "${pkgdir}"/var/lib/potatoe/quotes.txt
