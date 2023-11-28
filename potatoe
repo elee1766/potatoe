@@ -80,9 +80,16 @@ def main():
     parser.add_argument("-t", "--text",
                         help="show only the text",
                         action="store_true")
+
+    parser.add_argument("-w", "--width",
+                        help="override width",
+                        )
     args = parser.parse_args()
-    (w, h) = terminal_size()
-    defaultFill = 0.64 * w
+    if args.width is not None:
+        defaultFill = int(args.width)
+    else:
+        (w, h) = terminal_size()
+        defaultFill = 0.64 * w
     quoteL = []
     for fileName in [
             "./quotes.txt",
