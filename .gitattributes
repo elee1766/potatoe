@@ -1,4 +1,5 @@
 *.go linguist-vendored
 *.nim linguist-vendored
 *.py linguist-vendored
-
+*.cs linguist-vendored
+*.c linguist-vendored
