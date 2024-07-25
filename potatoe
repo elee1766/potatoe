@@ -29,7 +29,6 @@ sub show {
     my ($quote, $width) = @_;
     $Text::Wrap::columns = $width;
     my @wraps = split "\n", (wrap('','',$quote));
-    push @wraps, "" if @wraps == 1;
     my $maxwidth = length($wraps[0]);
     foreach my $line (@wraps) {
         $maxwidth = length($line) if length($line) > $maxwidth;
@@ -37,19 +36,19 @@ sub show {
     my $out = " " . "_" x ($maxwidth + 2) . "\n";
     for my $idx (0 .. $#wraps) {
         if ($idx == 0) {
-            $out .= "/ ";
+            $out .= ((@wraps+0) == 1 ? "< " :"/ ");
         } elsif ($idx == $#wraps) {
-            $out .= "\\ ";
+            $out .= "\\ "
         } else {
-            $out .= "| ";
+            $out .= "| "
         }
         $out .= sprintf("%-*s", $maxwidth, $wraps[$idx]);
         if ($idx == 0) {
-            $out .= " \\";
+            $out .= ((@wraps+0) == 1 ? " >" :" \\");
         } elsif ($idx == $#wraps) {
-            $out .= " /";
+            $out .= " /"
         } else {
-            $out .= " |";
+            $out .= " |"
         }
         $out .= "\n";
     }
