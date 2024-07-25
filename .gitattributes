@@ -1,0 +1,3 @@
+*.go linguist-detectable=false
+*.py linguist-detectable=false
+*.nim linguist-detectable=false
