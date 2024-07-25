@@ -32,8 +32,8 @@ tmpl = r'''
 def show(quote, width):
     out = ""
     wraps = textwrap.wrap(quote, width)
-    if len(wraps) == 1:
-        wraps.append("")
+    if len(wraps) == 0:
+        wraps.append("...")
     maxwidth = len(wraps[0])
     for line in wraps:
         if len(line) > maxwidth:
@@ -41,14 +41,14 @@ def show(quote, width):
     out = out + " " + "_" * (maxwidth+2) + "\n"
     for idx, line in enumerate(wraps):
         if idx == 0:
-            out = out + "/ "
+            out = out + ("< " if len(wraps) == 1 else "/ ")
         elif (idx == (len(wraps) - 1)):
             out = out + "\\ "
         else:
             out = out + "| "
         out = out + line.ljust(maxwidth, " ")
         if idx == 0:
-            out = out + " \\"
+            out = out + (" >" if len(wraps) == 1 else " \\")
         elif (idx == (len(wraps) - 1)):
             out = out + " /"
         else:
@@ -98,6 +98,8 @@ def main():
     ]:
         loadFile(fileName, quoteL)
     # ok we loaded the quote list, now filter unique ones
+    if len(quoteL) == 0:
+        quoteL = ["no quotes"]
     quoteL = list(set(quoteL))
     # now select a random one
     toread = random.randint(0, len(quoteL)-1)

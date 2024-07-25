@@ -21,3 +21,7 @@ lmao its in the aur now
 `https://aur.archlinux.org/packages/potatoe`
 
 have fun
+
+# other versions
+
+for fun, potatoe is also written in a few other languages. see contrib/
