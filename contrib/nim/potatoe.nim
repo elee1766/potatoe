@@ -21,13 +21,6 @@ var tmpl = """
          \__    \    -   o //
           -===============-       - dan quayle"""
 
-
-proc loadFile(name: string):seq[string] =
-  var resp = newSeq[string](0)
-
-  return resp
-
-
 proc show(quote:string, width:int) =
   var wraps = wrapWords(quote, width).split("\n")
   if wraps.len == 0:
