@@ -5,4 +5,4 @@ hashes:
 	@sha256sum quotes.txt
 
 srcinfo:
-	cd aur && makepkg --printsrcinfo > .SRCINFO
+	cd contrib/aur && makepkg --printsrcinfo > .SRCINFO

@@ -1,113 +1,115 @@
-#!/usr/bin/env python
-import random
-import sys
-import textwrap
-import argparse
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use List::Util 'uniq';
+use Getopt::Long;
+use Text::Wrap;
+use Try::Tiny;
 
+require 'sys/ioctl.ph';
 
-def terminal_size():
-    w = 100
-    h = 100
-    try:
-        import fcntl
-        import termios
-        import struct
-        h, w, _, _ = struct.unpack('HHHH', fcntl.ioctl(0, termios.TIOCGWINSZ,
-                                   struct.pack('HHHH', 0, 0, 0, 0)))
-    except:
-        pass
-    return w, h
+sub terminal_size {
+    try {
+        my ($w, $h) = (`tput cols`, `tput lines`);
+        return ($w, $h);
+    } catch {
+        return 100, 100
+    }
+}
 
-
-tmpl = r'''
+my $tmpl = <<'END_TEMPLATE';
         \        ___--===--___
          \    __=     ___   - \
             _/     o           |
          /==   \     __-- o    |
         |   o   -            _/
          \__    \    -   o //
-          -===============-       - dan quayle'''
+          -===============-       - dan quayle
+END_TEMPLATE
 
+sub show {
+    my ($quote, $width) = @_;
+    $Text::Wrap::columns = $width;
+    my @wraps = split "\n", (wrap('','',$quote));
+    push @wraps, "" if @wraps == 1;
+    my $maxwidth = length($wraps[0]);
+    foreach my $line (@wraps) {
+        $maxwidth = length($line) if length($line) > $maxwidth;
+    }
+    my $out = " " . "_" x ($maxwidth + 2) . "\n";
+    for my $idx (0 .. $#wraps) {
+        if ($idx == 0) {
+            $out .= "/ ";
+        } elsif ($idx == $#wraps) {
+            $out .= "\\ ";
+        } else {
+            $out .= "| ";
+        }
+        $out .= sprintf("%-*s", $maxwidth, $wraps[$idx]);
+        if ($idx == 0) {
+            $out .= " \\";
+        } elsif ($idx == $#wraps) {
+            $out .= " /";
+        } else {
+            $out .= " |";
+        }
+        $out .= "\n";
+    }
+    $out .= " " . "-" x ($maxwidth + 2) . "\n";
+    $out .= $tmpl;
+    print $out;
+}
 
-def show(quote, width):
-    out = ""
-    wraps = textwrap.wrap(quote, width)
-    if len(wraps) == 1:
-        wraps.append("")
-    maxwidth = len(wraps[0])
-    for line in wraps:
-        if len(line) > maxwidth:
-            maxwidth = len(line)
-    out = out + " " + "_" * (maxwidth+2) + "\n"
-    for idx, line in enumerate(wraps):
-        if idx == 0:
-            out = out + "/ "
-        elif (idx == (len(wraps) - 1)):
-            out = out + "\\ "
-        else:
-            out = out + "| "
-        out = out + line.ljust(maxwidth, " ")
-        if idx == 0:
-            out = out + " \\"
-        elif (idx == (len(wraps) - 1)):
-            out = out + " /"
-        else:
-            out = out + " |"
-        out = out + "\n"
-    out = out + " " + "-" * (maxwidth+2)
+sub loadFile {
+    my ($path, $quoteL) = @_;
+    eval {
+        open my $fh, '<', $path or die $!;
+        while (my $line = <$fh>) {
+            chomp $line;
+            if (length($line) > 4 && $line !~ /^#/) {
+                push @$quoteL, $line;
+            }
+        }
+        close $fh;
+    };
+}
 
-    out = out + tmpl
+sub main {
+    my $text;
+    my $width;
+    GetOptions(
+        'text'  => \$text,
+        'width=i' => \$width,
+    );
 
-    print(out)
+    my $defaultFill;
+    if (defined $width) {
+        $defaultFill = $width;
+    } else {
+        my ($w, $h) = terminal_size();
+        $defaultFill = int(0.64 * $w);
+    }
 
-# get the quote list
+    my @quoteL;
+    foreach my $fileName (
+        "./quotes.txt",
+        "/usr/lib/potatoe/quotes.txt",
+        "/var/lib/potatoe/quotes.txt",
+    ) {
+        try {
+        loadFile($fileName, \@quoteL);
+        } catch{}
+    }
 
+    @quoteL = uniq @quoteL;
+    my $toread = int(rand(@quoteL));
+    my $selected = $quoteL[$toread];
+    if ($text) {
+        print "$selected\n";
+        return 0;
+    }
+    show($selected, $defaultFill);
+    return 0;
+}
 
-def loadFile(path, quoteL):
-    try:
-        with open(path) as f:
-            content = f.readlines()
-            for k in content:
-                if len(k) > 4:
-                    if k[0] != "#":
-                        quoteL.append(k.replace("\n", ""))
-    except:
-        pass
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-t", "--text",
-                        help="show only the text",
-                        action="store_true")
-
-    parser.add_argument("-w", "--width",
-                        help="override width",
-                        )
-    args = parser.parse_args()
-    if args.width is not None:
-        defaultFill = int(args.width)
-    else:
-        (w, h) = terminal_size()
-        defaultFill = 0.64 * w
-    quoteL = []
-    for fileName in [
-            "./quotes.txt",
-            "/usr/lib/potatoe/quotes.txt",
-            "/var/lib/potatoe/quotes.txt",
-    ]:
-        loadFile(fileName, quoteL)
-    # ok we loaded the quote list, now filter unique ones
-    quoteL = list(set(quoteL))
-    # now select a random one
-    toread = random.randint(0, len(quoteL)-1)
-    selected = quoteL[toread]
-    if args.text:
-        print(selected)
-        return
-    show(selected, defaultFill)
-    return 0
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+exit(main());
