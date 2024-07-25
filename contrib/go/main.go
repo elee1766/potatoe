@@ -42,7 +42,11 @@ func show(quote string, width int) {
 	fmt.Fprintf(buf, " %s\n", strings.Repeat("_", maxWidth+2))
 	for i, line := range lines {
 		if i == 0 {
-			buf.WriteString("/ ")
+			if len(lines) == 1 {
+				buf.WriteString("< ")
+			} else {
+				buf.WriteString("/ ")
+			}
 		} else if i == len(lines)-1 {
 			buf.WriteString("\\ ")
 		} else {
@@ -50,7 +54,11 @@ func show(quote string, width int) {
 		}
 		fmt.Fprintf(buf, "%-*s", maxWidth, line)
 		if i == 0 {
-			buf.WriteString(" \\")
+			if len(lines) == 1 {
+				buf.WriteString(" >")
+			} else {
+				buf.WriteString(" \\")
+			}
 		} else if i == len(lines)-1 {
 			buf.WriteString(" /")
 		} else {

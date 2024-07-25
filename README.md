@@ -25,3 +25,10 @@ have fun
 # other versions
 
 for fun, potatoe is also written in a few other languages. see contrib/
+
+you can make your own. you need to support flags -w and -t
+
+eg `potatoe -w=40` or `potatoe -t`
+
+see existing examples for fun
+
