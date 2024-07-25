@@ -6,8 +6,6 @@ use Getopt::Long;
 use Text::Wrap;
 use Try::Tiny;
 
-require 'sys/ioctl.ph';
-
 sub terminal_size {
     try {
         my ($w, $h) = (`tput cols`, `tput lines`);
@@ -97,11 +95,11 @@ sub main {
         "/var/lib/potatoe/quotes.txt",
     ) {
         try {
-        loadFile($fileName, \@quoteL);
-        } catch{}
+            loadFile($fileName, \@quoteL);
+        }
     }
-
     @quoteL = uniq @quoteL;
+    push @quoteL, "no quotes" if @quoteL == 0;
     my $toread = int(rand(@quoteL));
     my $selected = $quoteL[$toread];
     if ($text) {

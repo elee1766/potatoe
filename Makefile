@@ -5,5 +5,5 @@ hashes:
 	@sha256sum quotes.txt
 
 install:
-	install potatoe /usr/local/bin
-	install quotes.txt /usr/lib/potatoe
+	install -D -t /usr/local/bin/ potatoe
+	install -D -t /usr/lib/potatoe/ quotes.txt
