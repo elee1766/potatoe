@@ -1,3 +1,4 @@
-*.go linguist-detectable=false
-*.py linguist-detectable=false
-*.nim linguist-detectable=false
+*.go linguist-vendored
+*.py linguist-vendored
+*.nim linguist-vendored
+
