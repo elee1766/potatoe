@@ -1,8 +1,9 @@
-.SILENT: release
+.PHONY: hashes install
 
 hashes:
 	@sha256sum potatoe
 	@sha256sum quotes.txt
 
-srcinfo:
-	cd contrib/aur && makepkg --printsrcinfo > .SRCINFO
+install:
+	install potatoe /usr/local/bin
+	install quotes.txt /usr/lib/potatoe
