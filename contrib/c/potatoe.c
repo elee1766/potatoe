@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]) {
     int width = 0;
     int height = 0;
     int text_flag = 0;
-    char *quoteL[MAX_QUOTES][MAX_LINE_LENGTH];
+    char quoteL[MAX_QUOTES][MAX_LINE_LENGTH];
     int quote_count = 0;
 
     int opt;
@@ -196,8 +197,11 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-
-    int toread = rand() % quote_count;
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    char buff[100];
+    srandom(ts.tv_nsec);
+    int toread = random() % quote_count;
     if (text_flag) {
         printf("%s\n", quoteL[toread]);
         return 0;
