@@ -2,12 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <PublishSingleFile>true</PublishSingleFile>
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Optimize>true</Optimize>
     <Deterministic>true</Deterministic>
+    <PublishAot>true</PublishAot>
+    <StripSymbols>true</StripSymbols>
+    <PublishTrimmed>true</PublishTrimmed>
+    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
 
   <ItemGroup>
