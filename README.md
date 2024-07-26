@@ -30,5 +30,5 @@ you can make your own. you need to support flags -w and -t
 
 eg `potatoe -w=40` or `potatoe -t`
 
-see existing examples for fun
+see existing versions for example implementations
 
