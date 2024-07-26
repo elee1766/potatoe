@@ -14,4 +14,4 @@ bench: clean potatoe
 	hyperfine -N "./potatoe"
 
 clean:
-	rm -rf bin potatoe
+	rm -rf bin potatoe obj
