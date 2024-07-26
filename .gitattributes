@@ -3,3 +3,5 @@
 *.py linguist-vendored
 *.cs linguist-vendored
 *.c linguist-vendored
+*.xml linguist-vendored
+*.csproj linguist-vendored
