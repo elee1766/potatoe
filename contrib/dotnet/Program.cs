@@ -1,8 +1,4 @@
-﻿using System;
-using System.Reflection;
-using System.CommandLine;
-using System.CommandLine.Invocation;
-using System.IO;
+﻿using System.CommandLine;
 
 namespace potatoe;
 
@@ -18,7 +14,7 @@ internal class Program
          \__    \    -   o //
           -===============-       - dan quayle";
 
-    static async Task<int> Main(string[] args)
+    static void Main(string[] args)
     {
         var rootCommand = new RootCommand(
                 description: "dan quayle themed");
@@ -34,14 +30,10 @@ internal class Program
         rootCommand.AddOption(textOnlyOption);
         rootCommand.AddOption(widthOption);
 
-        rootCommand.SetHandler(async (bool textOnly,int width) =>
-                {
-                    await Invoke(textOnly, width);
-                },
-                textOnlyOption, widthOption);
-        return await rootCommand.InvokeAsync(args);
+        rootCommand.SetHandler(Invoke,textOnlyOption, widthOption);
+        rootCommand.Invoke(args);
     }
-    static async Task<int> Show(string text, int width) {
+    static void Show(string text, int width) {
         var wraps = wordWrap(text, width);
         if(wraps.Count == 0) {
             wraps.Add("...");
@@ -72,10 +64,9 @@ internal class Program
         }
         buf.Write(" " + new string('-', maxwidth+2)+"\n");
         buf.WriteLine(tmpl);
-        await buf.FlushAsync();
-        return 0;
+        buf.Flush();
     }
-    static async Task<int> Invoke(bool textOnly, int width) {
+    static void Invoke(bool textOnly, int width) {
         if(width == 0) {
             width = (int)((float)(Console.WindowWidth)*0.64);
         }
@@ -108,9 +99,9 @@ internal class Program
         var selected = all[(new Random().Next(all.Count))];
         if(textOnly) {
             Console.Out.WriteLine(selected);
-            return 0;
+            return;
         }
-        return await Show(selected, width);
+        Show(selected, width);
     }
 
     private static List<string> wordWrap( string text, int maxLineLength )
