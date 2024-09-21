@@ -5,9 +5,7 @@ build: potatoe
 GHC_FLAGS = ${GHCFLAGS}
 
 potatoe: main.hs
-	@# we can disable the timer here with rtsopt -V0, since we dont use any
-	@# this dramatically increases startup.
-	ghc main.hs $(GHC_FLAGS) -with-rtsopts="-V0" -O2 -o potatoe
+	ghc main.hs $(GHC_FLAGS) -o potatoe
 
 # not super happy with the deps here.
 # random, directory is fine

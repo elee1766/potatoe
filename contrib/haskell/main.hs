@@ -11,6 +11,7 @@ import Data.List (intercalate, maximumBy)
 import Data.Ord
 import Text.Printf (printf)
 import Text.Wrap
+foreign import ccall "exit" c_exit :: Int -> IO ()
 
 tmpl :: T.Text
 tmpl = T.pack "\n        \\        ___--===--___\n         \\    __=     ___   - \n            _/     o           |\n         /==   \\     __-- o    |\n        |   o   -            _/\n         \\__    \\    -   o //\n          -===============-       - dan quayle\n"
@@ -73,5 +74,7 @@ main = do
     let width = 40
     selectedQuote <- loadQuotes
     if textFlag then TIO.putStrLn selectedQuote else showQuote selectedQuote width
+    -- thanks tomsmeding
+    c_exit 0
 
 
