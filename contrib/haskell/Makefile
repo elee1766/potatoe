@@ -8,7 +8,7 @@ potatoe: main.hs
 # not super happy with the deps here.
 # random, directory is fine
 # text is okay
-# terminal-size is bad :( TODO: find an stdlib replacement for this
+# terminal-size and word-wrap are bad :( TODO: find an stdlib replacement for this
 
 deps:
 		cabal install --lib --package-env . random directory text terminal-size word-wrap
