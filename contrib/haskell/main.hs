@@ -54,7 +54,7 @@ maxLineLength = maximum . map T.length
 
 loadQuotes :: IO T.Text
 loadQuotes = do
-    quotes <- concatMapM loadQuotesFromFile quoteFiles
+    quotes <- concat <$> mapM loadQuotesFromFile quoteFiles
     if null quotes then return "no quotes" else do
         idx <- randomRIO (0, length quotes - 1)
         return (quotes !! idx)
@@ -65,9 +65,6 @@ loadQuotesFromFile path = do
     if not exists then return [] else do
         contents <- TIO.readFile path
         return [T.strip line | line <- T.lines contents, T.length line > 4, not (T.isPrefixOf "#" line)]
-
-concatMapM :: (Monad m) => (a -> m [b]) -> [a] -> m [b]
-concatMapM f xs = concat <$> mapM f xs
 
 main :: IO ()
 main = do
