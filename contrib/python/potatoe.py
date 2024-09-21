@@ -106,7 +106,7 @@ def main():
     selected = quoteL[toread]
     if args.text:
         print(selected)
-        return
+        return 0
     show(selected, defaultFill)
     return 0
 

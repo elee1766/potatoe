@@ -5,7 +5,7 @@ build: potatoe
 GHC_FLAGS = ${GHCFLAGS}
 
 potatoe: main.hs
-	ghc main.hs $(GHC_FLAGS) -O2 -o potatoe
+	ghc main.hs $(GHC_FLAGS) -with-rtsopts="-V0.021" -O2 -o potatoe
 
 # not super happy with the deps here.
 # random, directory is fine
