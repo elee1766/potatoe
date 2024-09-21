@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-
 import qualified Data.Text as T
 import qualified Data.Text.IO as TIO
 import System.Environment (getArgs)
@@ -37,7 +36,7 @@ showQuote quote width = do
                         (0, _) -> " \\"
                         (n, _) | n == length lines - 1 -> " /"
                         _ -> " |"
-        TIO.putStrLn $ prefix <> T.justifyRight maxWidth ' ' line <> suffix
+        TIO.putStrLn $ prefix <> T.justifyLeft maxWidth ' ' line <> suffix
     TIO.putStr " "
     TIO.putStrLn $ T.replicate (maxWidth + 2) "-"
     TIO.putStr tmpl
@@ -69,6 +68,9 @@ main = do
                       Just termW -> return (width termW)
                       Nothing -> return 40
                     return (floor (0.64 * fromIntegral w))
+
+    let textFlag = False
+    let width = 40
     selectedQuote <- loadQuotes
     if textFlag then TIO.putStrLn selectedQuote else showQuote selectedQuote width
 
