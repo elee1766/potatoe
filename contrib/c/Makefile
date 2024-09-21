@@ -2,7 +2,7 @@
 
 
 potatoe: potatoe.c
-	clang -O3 -o potatoe potatoe.c
+	clang -O3 -m64 -flto -o potatoe potatoe.c
 
 bench: clean potatoe
 	hyperfine -N "./potatoe"
