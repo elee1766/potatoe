@@ -23,7 +23,7 @@ quoteFiles = ["./quotes.txt", "/usr/lib/potatoe/quotes.txt", "/var/lib/potatoe/q
 showQuote :: T.Text -> Int -> IO ()
 showQuote quote width = do
     let lines = wrapTextToLines defaultWrapSettings width quote
-        maxWidth = maxLineLength lines
+        maxWidth = maximum . map T.length $ lines
     TIO.putStr " "
     TIO.putStrLn $ T.replicate (maxWidth + 2) "_"
     forM_ (zip [0..] lines) $ \(i, line) -> do
@@ -41,16 +41,6 @@ showQuote quote width = do
     TIO.putStr " "
     TIO.putStrLn $ T.replicate (maxWidth + 2) "-"
     TIO.putStr tmpl
-
-breakLine :: [T.Text] -> Int -> ([T.Text], [T.Text])
-breakLine [] _ = ([], [])
-breakLine (w:ws) width
-    | T.length w > width = ([], w:ws)
-    | otherwise = let (line, rest) = breakLine ws (width - T.length w - 1)
-                  in (w : line, rest)
-
-maxLineLength :: [T.Text] -> Int
-maxLineLength = maximum . map T.length
 
 loadQuotes :: IO T.Text
 loadQuotes = do
