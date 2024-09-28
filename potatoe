@@ -86,7 +86,13 @@ sub main {
     };
 
     if ($h || $help) {
-        print "usage: potatoe [-t] [-w n]\n";
+        print <<'END_TEMPLATE';
+usage of potatoe:
+  --text -t
+        print quote text only
+  --width -w int
+        specify width for text wrapping
+END_TEMPLATE
         return 0;
     }
 

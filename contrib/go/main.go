@@ -128,8 +128,8 @@ func loadQuotes() map[string]struct{} {
 }
 
 func main() {
-	textFlag := flag.Bool("t", false, "Print selected quote as plain text")
-	widthFlag := flag.Int("w", 0, "Specify width for text wrapping")
+	textFlag := flag.Bool("t", false, "print quote text only")
+	widthFlag := flag.Int("w", 0, "specify width for text wrapping")
 	flag.Parse()
 
 	var width int
