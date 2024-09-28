@@ -74,10 +74,21 @@ sub loadFile {
 sub main {
     my $text;
     my $width;
-    GetOptions(
+    my $h;
+    my $help;
+    unless(GetOptions(
         'text'  => \$text,
         'width=i' => \$width,
-    );
+        'help' => \$help,
+        'h' => \$h,
+    )) {
+        return 0;
+    };
+
+    if ($h || $help) {
+        print "usage: potatoe [-t] [-w n]\n";
+        return 0;
+    }
 
     my $defaultFill;
     if (defined $width) {
