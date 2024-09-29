@@ -1,18 +1,31 @@
 import std.stdio;
 import std.getopt;
+import std.process;
 
-bool text
+bool text;
+int width;
+
+
+string tmpl = (`
+        \        ___--===--___
+         \    __=     ___   - \
+            _/     o           |
+         /==   \     __-- o    |
+        |   o   -            _/
+         \__    \    -   o //
+          -===============-       - dan quayle
+`);
 
 void main(string[] args)
 {
-    auto helpInformation = getopt(
+    auto flags = getopt(
             args,
-            "length",  &length,    // numeric
-            "file",    &data,      // string
-            "text", &text);
-    if (helpInformation.helpWanted)
+            "width|w",  &width,    // numeric
+            "text|t", &text);
+    if (flags.helpWanted)
     {
-        defaultGetoptPrinter("Some information about the program.",
-                helpInformation.options);
+        defaultGetoptPrinter("usage: potatoe",flags.options);
+        return;
     }
+    writeln(text, width);
 }
