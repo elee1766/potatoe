@@ -56,7 +56,7 @@ function show(quote, width)
         else
             io.write("| ")
         end
-        io.write(string.format("%-" .. maxwidth .. "s", line))
+        io.write(line .. string.rep(" ", maxwidth - #line))
         if idx == 1 then
             io.write((#wraps == 1 and " >" or " \\"))
         elseif idx == #wraps then
