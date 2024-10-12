@@ -14,7 +14,7 @@ local template = [[
 function terminal_size()
     local width
     local handle1 = io.popen("tput cols")
-    if handle1 and handle2 then
+    if handle1 then
         width = handle1:read("*n")
         handle1:close()
     end
