@@ -6,7 +6,8 @@ local template = [[
          /==   \     __-- o    |
         |   o   -            _/
          \__    \    -   o //
-          -===============-       - dan quayle]]
+          -===============-       - dan quayle
+]]
 
 
 io.stdout:setvbuf('full', 1024)
