@@ -5,3 +5,5 @@
 *.c linguist-vendored
 *.xml linguist-vendored
 *.csproj linguist-vendored
+*.rs linguist-vendored
+*.hs linguist-vendored
