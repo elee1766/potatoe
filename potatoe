@@ -1,4 +1,4 @@
-#!/usr/bin/env lua
+#!/usr/bin/env luajit
 local template = [[
         \        ___--===--___
          \    __=     ___   - \
@@ -10,19 +10,15 @@ local template = [[
 ]]
 
 
-io.stdout:setvbuf('full', 1024)
 
 function terminal_size()
-    local width, height
+    local width
     local handle1 = io.popen("tput cols")
-    local handle2 = io.popen("tput lines")
     if handle1 and handle2 then
         width = handle1:read("*n")
-        height = handle2:read("*n")
         handle1:close()
-        handle2:close()
     end
-    return width or 100, height or 100
+    return width or 100
 end
 
 function wrap_text(text, width)
@@ -95,6 +91,7 @@ function main(args)
             options[args[i]] = true
         end
     end
+    io.stdout:setvbuf('full', 1024)
     text = options["--text"] or options["-t"]
     width = tonumber(args[#args])
     h = options["--help"] or options["-h"]
