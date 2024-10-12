@@ -98,7 +98,6 @@ function main(args)
     text = options["--text"] or options["-t"]
     width = tonumber(args[#args])
     h = options["--help"] or options["-h"]
-
     if h or help then
         print([[
 usage of potatoe:
@@ -139,5 +138,5 @@ usage of potatoe:
     return 0
 end
 
-math.randomseed(os.time())
+math.randomseed(os.clock())
 os.exit(main(arg))
