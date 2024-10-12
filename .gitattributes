@@ -7,3 +7,4 @@
 *.csproj linguist-vendored
 *.rs linguist-vendored
 *.hs linguist-vendored
+*.d linguist-vendored
