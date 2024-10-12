@@ -1,0 +1,129 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use List::Util 'uniq';
+use Getopt::Long;
+use Text::Wrap;
+use Try::Tiny;
+
+my $tmpl = <<'END_TEMPLATE';
+        \        ___--===--___
+         \    __=     ___   - \
+            _/     o           |
+         /==   \     __-- o    |
+        |   o   -            _/
+         \__    \    -   o //
+          -===============-       - dan quayle
+END_TEMPLATE
+
+sub terminal_size {
+    try {
+        my ($w, $h) = (`tput cols`, `tput lines`);
+        return ($w, $h);
+    } catch {
+        return 100, 100
+    }
+}
+
+sub show {
+    my ($quote, $width) = @_;
+    $Text::Wrap::columns = $width;
+    my @wraps = split "\n", (wrap('','',$quote));
+    my $maxwidth = length($wraps[0]);
+    foreach my $line (@wraps) {
+        $maxwidth = length($line) if length($line) > $maxwidth;
+    }
+    my $out = " " . "_" x ($maxwidth + 2) . "\n";
+    for my $idx (0 .. $#wraps) {
+        if ($idx == 0) {
+            $out .= ((@wraps+0) == 1 ? "< " :"/ ");
+        } elsif ($idx == $#wraps) {
+            $out .= "\\ "
+        } else {
+            $out .= "| "
+        }
+        $out .= sprintf("%-*s", $maxwidth, $wraps[$idx]);
+        if ($idx == 0) {
+            $out .= ((@wraps+0) == 1 ? " >" :" \\");
+        } elsif ($idx == $#wraps) {
+            $out .= " /"
+        } else {
+            $out .= " |"
+        }
+        $out .= "\n";
+    }
+    $out .= " " . "-" x ($maxwidth + 2) . "\n";
+    $out .= $tmpl;
+    print $out;
+}
+
+sub loadFile {
+    my ($path, $quoteL) = @_;
+    eval {
+        open my $fh, '<', $path or die $!;
+        while (my $line = <$fh>) {
+            chomp $line;
+            if (length($line) > 4 && $line !~ /^#/) {
+                push @$quoteL, $line;
+            }
+        }
+        close $fh;
+    };
+}
+
+sub main {
+    my $text;
+    my $width;
+    my $h;
+    my $help;
+    unless(GetOptions(
+        'text'  => \$text,
+        'width=i' => \$width,
+        'help' => \$help,
+        'h' => \$h,
+    )) {
+        return 0;
+    };
+
+    if ($h || $help) {
+        print <<'END_TEMPLATE';
+usage of potatoe:
+  --text -t
+        print quote text only
+  --width -w int
+        specify width for text wrapping
+END_TEMPLATE
+        return 0;
+    }
+
+    my $defaultFill;
+    if (defined $width) {
+        $defaultFill = $width;
+    } else {
+        my ($w, $h) = terminal_size();
+        $defaultFill = int(0.64 * $w);
+    }
+
+    my @quoteL;
+    foreach my $fileName (
+        "./quotes.txt",
+        "/usr/lib/potatoe/quotes.txt",
+        "/var/lib/potatoe/quotes.txt",
+    ) {
+        try {
+            loadFile($fileName, \@quoteL);
+        }
+    }
+    @quoteL = uniq @quoteL;
+    push @quoteL, "no quotes" if @quoteL == 0;
+    my $toread = int(rand(@quoteL));
+    my $selected = $quoteL[$toread];
+    if ($text) {
+        print "$selected\n";
+        return 0;
+    }
+    show($selected, $defaultFill);
+    return 0;
+}
+
+exit(main());

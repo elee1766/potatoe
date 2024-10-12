@@ -1,129 +1,138 @@
-#!/usr/bin/env perl
-use strict;
-use warnings;
-use List::Util 'uniq';
-use Getopt::Long;
-use Text::Wrap;
-use Try::Tiny;
-
-my $tmpl = <<'END_TEMPLATE';
+#!/usr/bin/env lua
+local template = [[
         \        ___--===--___
          \    __=     ___   - \
             _/     o           |
          /==   \     __-- o    |
         |   o   -            _/
          \__    \    -   o //
-          -===============-       - dan quayle
-END_TEMPLATE
+          -===============-       - dan quayle]]
 
-sub terminal_size {
-    try {
-        my ($w, $h) = (`tput cols`, `tput lines`);
-        return ($w, $h);
-    } catch {
-        return 100, 100
-    }
-}
+function terminal_size()
+    local width, height
+    local handle1 = io.popen("tput cols")
+    local handle2 = io.popen("tput lines")
+    if handle1 and handle2 then
+        width = handle1:read("*n")
+        height = handle2:read("*n")
+        handle1:close()
+        handle2:close()
+    end
+    return width or 100, height or 100
+end
 
-sub show {
-    my ($quote, $width) = @_;
-    $Text::Wrap::columns = $width;
-    my @wraps = split "\n", (wrap('','',$quote));
-    my $maxwidth = length($wraps[0]);
-    foreach my $line (@wraps) {
-        $maxwidth = length($line) if length($line) > $maxwidth;
-    }
-    my $out = " " . "_" x ($maxwidth + 2) . "\n";
-    for my $idx (0 .. $#wraps) {
-        if ($idx == 0) {
-            $out .= ((@wraps+0) == 1 ? "< " :"/ ");
-        } elsif ($idx == $#wraps) {
-            $out .= "\\ "
-        } else {
-            $out .= "| "
-        }
-        $out .= sprintf("%-*s", $maxwidth, $wraps[$idx]);
-        if ($idx == 0) {
-            $out .= ((@wraps+0) == 1 ? " >" :" \\");
-        } elsif ($idx == $#wraps) {
-            $out .= " /"
-        } else {
-            $out .= " |"
-        }
-        $out .= "\n";
-    }
-    $out .= " " . "-" x ($maxwidth + 2) . "\n";
-    $out .= $tmpl;
-    print $out;
-}
+function wrap_text(text, width)
+    local result = {}
+    local line = ""
+    for word in text:gmatch("%S+") do
+        if #line + #word + 1 > width then
+            table.insert(result, line)
+            line = word
+        else
+            line = line .. (line == "" and "" or " ") .. word
+        end
+    end
+    if #line > 0 then
+        table.insert(result, line)
+    end
+    return result
+end
 
-sub loadFile {
-    my ($path, $quoteL) = @_;
-    eval {
-        open my $fh, '<', $path or die $!;
-        while (my $line = <$fh>) {
-            chomp $line;
-            if (length($line) > 4 && $line !~ /^#/) {
-                push @$quoteL, $line;
-            }
-        }
-        close $fh;
-    };
-}
+function show(quote, width)
+    local wraps = wrap_text(quote, width)
+    local maxwidth = 0
+    for _, line in ipairs(wraps) do
+        if #line > maxwidth then
+            maxwidth = #line
+        end
+    end
+    local out = " " .. string.rep("_", maxwidth + 2) .. "\n"
+    for idx, line in ipairs(wraps) do
+        if idx == 1 then
+            out = out .. (#wraps == 1 and "< " or "/ ")
+        elseif idx == #wraps then
+            out = out .. "\\ "
+        else
+            out = out .. "| "
+        end
+        out = out .. string.format("%-" .. maxwidth .. "s", line)
+        if idx == 1 then
+            out = out .. (#wraps == 1 and " >" or " \\")
+        elseif idx == #wraps then
+            out = out .. " /"
+        else
+            out = out .. " |"
+        end
+        out = out .. "\n"
+    end
+    out = out .. " " .. string.rep("-", maxwidth + 2) .. "\n"
+    out = out .. template
+    print(out)
+end
 
-sub main {
-    my $text;
-    my $width;
-    my $h;
-    my $help;
-    unless(GetOptions(
-        'text'  => \$text,
-        'width=i' => \$width,
-        'help' => \$help,
-        'h' => \$h,
-    )) {
-        return 0;
-    };
+function loadFile(path, quoteL)
+    local file = io.open(path, "r")
+    if file then
+        for line in file:lines() do
+            if #line > 4 and not line:match("^#") then
+                table.insert(quoteL, line)
+            end
+        end
+        file:close()
+    end
+end
 
-    if ($h || $help) {
-        print <<'END_TEMPLATE';
+function main(args)
+    local text, width, h, help
+    local options = {}
+    for i = 1, #args do
+        if args[i]:match("^%-") then
+            options[args[i]] = true
+        end
+    end
+    text = options["--text"] or options["-t"]
+    width = tonumber(args[#args])
+    h = options["--help"] or options["-h"]
+
+    if h or help then
+        print([[
 usage of potatoe:
   --text -t
         print quote text only
   --width -w int
         specify width for text wrapping
-END_TEMPLATE
-        return 0;
-    }
+]])
+        return 0
+    end
 
-    my $defaultFill;
-    if (defined $width) {
-        $defaultFill = $width;
-    } else {
-        my ($w, $h) = terminal_size();
-        $defaultFill = int(0.64 * $w);
-    }
+    local defaultFill
+    if width then
+        defaultFill = width
+    else
+        local w, h = terminal_size()
+        defaultFill = math.floor(0.64 * w)
+    end
 
-    my @quoteL;
-    foreach my $fileName (
+    local quoteL = {}
+    for _, fileName in ipairs({
         "./quotes.txt",
         "/usr/lib/potatoe/quotes.txt",
         "/var/lib/potatoe/quotes.txt",
-    ) {
-        try {
-            loadFile($fileName, \@quoteL);
-        }
-    }
-    @quoteL = uniq @quoteL;
-    push @quoteL, "no quotes" if @quoteL == 0;
-    my $toread = int(rand(@quoteL));
-    my $selected = $quoteL[$toread];
-    if ($text) {
-        print "$selected\n";
-        return 0;
-    }
-    show($selected, $defaultFill);
-    return 0;
-}
+    }) do
+        loadFile(fileName, quoteL)
+    end
 
-exit(main());
+    if #quoteL == 0 then
+        table.insert(quoteL, "no quotes")
+    end
+    local selected = quoteL[math.random(#quoteL)]
+    if text then
+        print(selected)
+        return 0
+    end
+    show(selected, defaultFill)
+    return 0
+end
+
+math.randomseed(os.time())
+os.exit(main(arg))
