@@ -8,6 +8,9 @@ local template = [[
          \__    \    -   o //
           -===============-       - dan quayle]]
 
+
+io.stdout:setvbuf('full', 1024)
+
 function terminal_size()
     local width, height
     local handle1 = io.popen("tput cols")
@@ -47,29 +50,28 @@ function show(quote, width)
         end
     end
     local out = {}
-    table.insert(out," " .. string.rep("_", maxwidth + 2) .. "\n")
+    io.write(" " .. string.rep("_", maxwidth + 2) .. "\n")
     for idx, line in ipairs(wraps) do
         if idx == 1 then
-            table.insert(out, (#wraps == 1 and "< " or "/ "))
+            io.write((#wraps == 1 and "< " or "/ "))
         elseif idx == #wraps then
-            table.insert(out, "\\ ")
+            io.write("\\ ")
         else
-            table.insert(out, "| ")
+            io.write("| ")
         end
-        table.insert(out, string.format("%-" .. maxwidth .. "s", line))
+        io.write(string.format("%-" .. maxwidth .. "s", line))
         if idx == 1 then
-            table.insert(out, (#wraps == 1 and " >" or " \\"))
+            io.write((#wraps == 1 and " >" or " \\"))
         elseif idx == #wraps then
-            table.insert(out, " /")
+            io.write(" /")
         else
-            table.insert(out, " |")
+            io.write(" |")
         end
-        table.insert(out, "\n")
+        io.write("\n")
     end
-    table.insert(out, " " .. string.rep("-", maxwidth + 2) .. "\n")
-    table.insert(out, template)
-
-    print(table.concat(out))
+    io.write(" " .. string.rep("-", maxwidth + 2) .. "\n")
+    io.write(template)
+    io.flush()
 end
 
 function loadFile(path, quoteL)
