@@ -101,19 +101,9 @@ usage of potatoe:
   --text -t
         print quote text only
   --width -w int
-        specify width for text wrapping
-]])
+        specify width for text wrapping]])
         return 0
     end
-
-    local defaultFill
-    if width then
-        defaultFill = width
-    else
-        local w, h = terminal_size()
-        defaultFill = math.floor(0.64 * w)
-    end
-
     local quoteL = {}
     for _, fileName in ipairs({
         "./quotes.txt",
@@ -122,7 +112,6 @@ usage of potatoe:
     }) do
         loadFile(fileName, quoteL)
     end
-
     if #quoteL == 0 then
         table.insert(quoteL, "no quotes")
     end
@@ -130,6 +119,13 @@ usage of potatoe:
     if text then
         print(selected)
         return 0
+    end
+    local defaultFill
+    if width then
+        defaultFill = width
+    else
+        local w, h = terminal_size()
+        defaultFill = math.floor(0.64 * w)
     end
     show(selected, defaultFill)
     return 0
