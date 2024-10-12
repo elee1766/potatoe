@@ -46,28 +46,30 @@ function show(quote, width)
             maxwidth = #line
         end
     end
-    local out = " " .. string.rep("_", maxwidth + 2) .. "\n"
+    local out = {}
+    table.insert(out," " .. string.rep("_", maxwidth + 2) .. "\n")
     for idx, line in ipairs(wraps) do
         if idx == 1 then
-            out = out .. (#wraps == 1 and "< " or "/ ")
+            table.insert(out, (#wraps == 1 and "< " or "/ "))
         elseif idx == #wraps then
-            out = out .. "\\ "
+            table.insert(out, "\\ ")
         else
-            out = out .. "| "
+            table.insert(out, "| ")
         end
-        out = out .. string.format("%-" .. maxwidth .. "s", line)
+        table.insert(out, string.format("%-" .. maxwidth .. "s", line))
         if idx == 1 then
-            out = out .. (#wraps == 1 and " >" or " \\")
+            table.insert(out, (#wraps == 1 and " >" or " \\"))
         elseif idx == #wraps then
-            out = out .. " /"
+            table.insert(out, " /")
         else
-            out = out .. " |"
+            table.insert(out, " |")
         end
-        out = out .. "\n"
+        table.insert(out, "\n")
     end
-    out = out .. " " .. string.rep("-", maxwidth + 2) .. "\n"
-    out = out .. template
-    print(out)
+    table.insert(out, " " .. string.rep("-", maxwidth + 2) .. "\n")
+    table.insert(out, template)
+
+    print(table.concat(out))
 end
 
 function loadFile(path, quoteL)
