@@ -9,8 +9,6 @@ local template = [[
           -===============-       - dan quayle
 ]]
 
-
-
 function terminal_size()
     local width
     local handle1 = io.popen("tput cols")
