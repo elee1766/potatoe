@@ -9,3 +9,4 @@
 *.hs linguist-vendored
 *.d linguist-vendored
 *.pl linguist-vendored
+*.kt linguist-vendored
