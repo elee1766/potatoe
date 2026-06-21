@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 # this library is fine because it is part of stdlib from what i understand
-rand = { version = "0.8" }
+rand = { version = "0.10" }
 # this is in the rust-lang github org, so its okay to use
 getopts = { version = "0.2.21" }
 # TODO: these two dependencies should be ideally removed.

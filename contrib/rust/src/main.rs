@@ -7,7 +7,7 @@ use std::io::{self, BufRead, Write, BufWriter};
 use std::path::Path;
 use textwrap;
 
-use rand::Rng;
+use rand::RngExt as _;
 
 static TMPL: &'static str = r#"
         \        ___--===--___
@@ -99,7 +99,7 @@ fn main() {
     if all_lines.len() == 0 {
         all_lines.push("no quotes".to_owned());
     }
-    let num = rand::thread_rng().gen_range(0..all_lines.len());
+    let num = rand::rng().random_range(0..all_lines.len());
     if !text_only {
         let _ = show(&all_lines[num], width);
         return;
