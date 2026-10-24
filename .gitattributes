@@ -10,3 +10,4 @@
 *.d linguist-vendored
 *.pl linguist-vendored
 *.kt linguist-vendored
+*.dart linguist-vendored
