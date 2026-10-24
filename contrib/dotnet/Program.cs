@@ -1,125 +1,84 @@
-﻿using System.CommandLine;
+const string tmpl = """
 
-namespace potatoe;
-
-internal class Program
-{
-
-    private static string tmpl = @"
         \        ___--===--___
          \    __=     ___   - \
             _/     o           |
          /==   \     __-- o    |
         |   o   -            _/
          \__    \    -   o //
-          -===============-       - dan quayle";
+          -===============-       - dan quayle
+""";
 
-    static void Main(string[] args)
+bool textOnly = false;
+int width = 0;
+for (int i = 0; i < args.Length; i++)
+{
+    var (key, val) = args[i].Split('=', 2) is [var k, var v] ? (k, v) : (args[i], null);
+    switch (key)
     {
-        var rootCommand = new RootCommand(
-                description: "dan quayle themed");
-
-        rootCommand.TreatUnmatchedTokensAsErrors = true;
-        var textOnlyOption = new Option<bool>(
-                aliases: new string[] { "--text-only", "-t" }
-                , description: "no potatoe, only dan");
-
-        var widthOption = new Option<int>(
-                aliases: new string[] { "--width", "-w" }
-                , description: "text width");
-        rootCommand.AddOption(textOnlyOption);
-        rootCommand.AddOption(widthOption);
-
-        rootCommand.SetHandler(Invoke,textOnlyOption, widthOption);
-        rootCommand.Invoke(args);
-    }
-    static void Show(string text, int width) {
-        var wraps = wordWrap(text, width);
-        if(wraps.Count == 0) {
-            wraps.Add("...");
-        }
-        var maxwidth = wraps.Max(s=>s.Length);
-        var buf = Console.Out;
-
-        buf.Write(" " + new string('_', maxwidth+2)+"\n");
-        for (int idx = 0; idx < wraps.Count; idx++)
-        {
-            var line = wraps[idx];
-            if(idx == 0) {
-                buf.Write(wraps.Count == 1 ? "< " : "/ ");
-            } else if(idx == wraps.Count - 1) {
-                buf.Write("\\ ");
-            } else {
-                buf.Write("| ");
-            }
-            buf.Write(line.PadRight(maxwidth));
-            if(idx == 0) {
-                buf.Write(wraps.Count == 1 ? " >" : " \\");
-            } else if(idx == wraps.Count - 1) {
-                buf.Write(" /");
-            } else {
-                buf.Write(" |");
-            }
-            buf.Write('\n');
-        }
-        buf.Write(" " + new string('-', maxwidth+2)+"\n");
-        buf.WriteLine(tmpl);
-        buf.Flush();
-    }
-    static void Invoke(bool textOnly, int width) {
-        if(width == 0) {
-            width = (int)((float)(Console.WindowWidth)*0.64);
-        }
-        if(width == 0) {
-            width = 64;
-        }
-        var all = new List<string>();
-
-        foreach(var fileName in new[] {
-                "./quotes.txt",
-                "/usr/lib/potatoe/quotes.txt",
-                "/var/lib/potatoe/quotes.txt",
-                }){
-            try {
-                var lines = File.ReadLines(fileName);
-                foreach (var line in lines) {
-                    if(line.Length < 5) {
-                        continue;
-                    }
-                    if(line[0] == '#') {
-                        continue;
-                    }
-                    all.Add(line);
-                }
-            }catch{}
-        }
-        if(all.Count == 0) {
-            all.Add("no quotes");
-        }
-        var selected = all[(new Random().Next(all.Count))];
-        if(textOnly) {
-            Console.Out.WriteLine(selected);
+        case "-t" or "--text":
+            textOnly = true;
+            break;
+        case "-w" or "--width":
+            int.TryParse(val ?? (++i < args.Length ? args[i] : ""), out width);
+            break;
+        case "-h" or "--help":
+            Console.WriteLine("usage: potatoe [-t|--text] [-w|--width N]");
             return;
-        }
-        Show(selected, width);
+        default:
+            Console.Error.WriteLine($"unknown argument: {args[i]}");
+            Environment.Exit(1);
+            break;
     }
+}
 
-    private static List<string> wordWrap( string text, int maxLineLength )
+string[] files = ["./quotes.txt", "/usr/lib/potatoe/quotes.txt", "/var/lib/potatoe/quotes.txt"];
+var quotes = files.Where(File.Exists)
+    .SelectMany(File.ReadLines)
+    .Select(l => l.Trim())
+    .Where(l => l.Length > 4 && !l.StartsWith('#'))
+    .Distinct()
+    .DefaultIfEmpty("no quotes")
+    .ToArray();
+var quote = quotes[Random.Shared.Next(quotes.Length)];
+
+if (textOnly)
+{
+    Console.WriteLine(quote);
+    return;
+}
+if (width <= 0)
+{
+    int cols = Console.IsOutputRedirected ? 0 : Console.WindowWidth;
+    width = cols > 0 ? (int)(cols * 0.64) : 64;
+}
+
+var lines = Wrap(quote, width);
+int max = lines.Max(l => l.Length);
+var sb = new System.Text.StringBuilder();
+sb.Append(' ').Append('_', max + 2).Append('\n');
+for (int i = 0; i < lines.Count; i++)
+{
+    var (l, r) = (lines.Count, i) switch
     {
-        var list = new List<string>();
+        (1, _) => ('<', '>'),
+        (_, 0) => ('/', '\\'),
+        var (n, j) when j == n - 1 => ('\\', '/'),
+        _ => ('|', '|'),
+    };
+    sb.Append($"{l} {lines[i].PadRight(max)} {r}\n");
+}
+sb.Append(' ').Append('-', max + 2).Append(tmpl).Append('\n');
+Console.Out.Write(sb);
 
-        int currentIndex;
-        var lastWrap = 0;
-        var whitespace = new[] { ' ', '\r', '\n', '\t' };
-        do
-        {
-            currentIndex = lastWrap + maxLineLength > text.Length ? text.Length : (text.LastIndexOfAny( new[] { ' ', ',', '.', '?', '!', ':', ';', '-', '\n', '\r', '\t' }, Math.Min( text.Length - 1, lastWrap + maxLineLength)  ) + 1);
-            if( currentIndex <= lastWrap )
-                currentIndex = Math.Min( lastWrap + maxLineLength, text.Length );
-            list.Add( text.Substring( lastWrap, currentIndex - lastWrap ).Trim( whitespace ) );
-            lastWrap = currentIndex;
-        } while( currentIndex < text.Length );
-
-        return list;
+static List<string> Wrap(string text, int width)
+{
+    List<string> lines = [""];
+    foreach (var word in text.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries))
+    {
+        if (lines[^1].Length == 0) lines[^1] = word;
+        else if (lines[^1].Length + 1 + word.Length > width) lines.Add(word);
+        else lines[^1] += " " + word;
     }
+    return lines;
 }

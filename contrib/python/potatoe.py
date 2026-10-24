@@ -1,22 +1,13 @@
 #!/usr/bin/env python
 import random
+import shutil
 import sys
 import textwrap
 import argparse
 
 
 def terminal_size():
-    w = 100
-    h = 100
-    try:
-        import fcntl
-        import termios
-        import struct
-        h, w, _, _ = struct.unpack('HHHH', fcntl.ioctl(0, termios.TIOCGWINSZ,
-                                   struct.pack('HHHH', 0, 0, 0, 0)))
-    except:
-        pass
-    return w, h
+    return shutil.get_terminal_size((100, 100))
 
 
 tmpl = r'''
@@ -89,7 +80,7 @@ def main():
         defaultFill = int(args.width)
     else:
         (w, h) = terminal_size()
-        defaultFill = 0.64 * w
+        defaultFill = int(0.64 * w)
     quoteL = []
     for fileName in [
             "./quotes.txt",

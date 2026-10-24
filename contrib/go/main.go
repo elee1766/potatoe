@@ -4,11 +4,12 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"os"
+	"slices"
 	"strings"
-
-	"golang.org/x/term"
+	"syscall"
+	"unsafe"
 )
 
 const tmpl = `
@@ -27,133 +28,88 @@ var quoteFiles = []string{
 	"/var/lib/potatoe/quotes.txt",
 }
 
-func terminalSize() (int, int) {
-	width, height, err := term.GetSize(0)
-	if err != nil {
-		return 100, 100
+func terminalWidth() int {
+	var ws [4]uint16
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, 0, syscall.TIOCGWINSZ, uintptr(unsafe.Pointer(&ws)))
+	if errno != 0 || ws[1] == 0 {
+		return 100
 	}
-	return width, height
+	return int(ws[1])
+}
+
+func wrapText(text string, width int) []string {
+	var lines []string
+	line := ""
+	for word := range strings.FieldsSeq(text) {
+		switch {
+		case line == "":
+			line = word
+		case len(line)+1+len(word) > width:
+			lines = append(lines, line)
+			line = word
+		default:
+			line += " " + word
+		}
+	}
+	return append(lines, line)
 }
 
 func show(quote string, width int) {
 	lines := wrapText(quote, width)
-	maxWidth := maxLineLength(lines)
+	maxWidth := len(slices.MaxFunc(lines, func(a, b string) int { return len(a) - len(b) }))
 	buf := bufio.NewWriter(os.Stdout)
+	defer buf.Flush()
 	fmt.Fprintf(buf, " %s\n", strings.Repeat("_", maxWidth+2))
 	for i, line := range lines {
-		if i == 0 {
-			if len(lines) == 1 {
-				buf.WriteString("< ")
-			} else {
-				buf.WriteString("/ ")
-			}
-		} else if i == len(lines)-1 {
-			buf.WriteString("\\ ")
-		} else {
-			buf.WriteString("| ")
+		l, r := "| ", " |"
+		switch {
+		case len(lines) == 1:
+			l, r = "< ", " >"
+		case i == 0:
+			l, r = "/ ", " \\"
+		case i == len(lines)-1:
+			l, r = "\\ ", " /"
 		}
-		fmt.Fprintf(buf, "%-*s", maxWidth, line)
-		if i == 0 {
-			if len(lines) == 1 {
-				buf.WriteString(" >")
-			} else {
-				buf.WriteString(" \\")
-			}
-		} else if i == len(lines)-1 {
-			buf.WriteString(" /")
-		} else {
-			buf.WriteString(" |")
-		}
-		buf.WriteString("\n")
+		fmt.Fprintf(buf, "%s%-*s%s\n", l, maxWidth, line, r)
 	}
-	fmt.Fprintf(buf, " %s\n", strings.Repeat("-", maxWidth+2))
-	fmt.Fprintf(buf, tmpl)
-	buf.Flush()
+	fmt.Fprintf(buf, " %s\n%s", strings.Repeat("-", maxWidth+2), tmpl)
 }
 
-func wrapText(text string, width int) []string {
-	var result []string
-	words := strings.Fields(text)
-	if len(words) == 0 {
-		return []string{}
-	}
-
-	var currentLine strings.Builder
-	currentLine.WriteString(words[0])
-
-	for _, word := range words[1:] {
-		if currentLine.Len()+1+len(word) > width {
-			result = append(result, currentLine.String())
-			currentLine.Reset()
-			currentLine.WriteString(word)
-		} else {
-			currentLine.WriteString(" ")
-			currentLine.WriteString(word)
-		}
-	}
-	result = append(result, currentLine.String())
-	return result
-}
-
-func maxLineLength(lines []string) int {
-	max := 0
-	for _, line := range lines {
-		if len(line) > max {
-			max = len(line)
-		}
-	}
-	return max
-}
-
-func loadQuotes() map[string]struct{} {
-	quoteMap := make(map[string]struct{}, 128)
+func loadQuotes() []string {
+	var quotes []string
 	for _, path := range quoteFiles {
-		file, err := os.Open(path)
+		data, err := os.ReadFile(path)
 		if err != nil {
 			continue
 		}
-		defer file.Close()
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			line := strings.TrimSpace(scanner.Text())
+		for line := range strings.Lines(string(data)) {
+			line = strings.TrimSpace(line)
 			if len(line) > 4 && !strings.HasPrefix(line, "#") {
-				quoteMap[line] = struct{}{}
+				quotes = append(quotes, line)
 			}
 		}
 	}
-	if len(quoteMap) == 0 {
-		quoteMap["no quotes"] = struct{}{}
+	slices.Sort(quotes)
+	quotes = slices.Compact(quotes)
+	if len(quotes) == 0 {
+		quotes = []string{"no quotes"}
 	}
-	return quoteMap
+	return quotes
 }
 
 func main() {
-	textFlag := flag.Bool("t", false, "print quote text only")
-	widthFlag := flag.Int("w", 0, "specify width for text wrapping")
+	text := flag.Bool("t", false, "print quote text only")
+	width := flag.Int("w", 0, "specify width for text wrapping")
 	flag.Parse()
 
-	var width int
-	if *widthFlag != 0 {
-		width = *widthFlag
-	} else {
-		w, _ := terminalSize()
-		width = int(0.64 * float64(w))
-	}
-
 	quotes := loadQuotes()
-	r := rand.Intn(len(quotes))
-	idx := 0
-	var selectedQuote string
-	for k := range quotes {
-		if idx == r {
-			selectedQuote = k
-			break
-		}
-		idx++
+	quote := quotes[rand.IntN(len(quotes))]
+	if *text {
+		fmt.Println(quote)
+		return
 	}
-	if *textFlag {
-		fmt.Println(selectedQuote)
-	} else {
-		show(selectedQuote, width)
+	if *width == 0 {
+		*width = int(0.64 * float64(terminalWidth()))
 	}
+	show(quote, *width)
 }

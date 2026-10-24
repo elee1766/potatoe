@@ -1,15 +1,7 @@
-extern crate getopts;
+use std::hash::{BuildHasher, RandomState};
+use std::io::{self, BufWriter, Write};
 
-use getopts::Options;
-use std::env;
-use std::fs::File;
-use std::io::{self, BufRead, Write, BufWriter};
-use std::path::Path;
-use textwrap;
-
-use rand::RngExt as _;
-
-static TMPL: &'static str = r#"
+const TMPL: &str = r#"
         \        ___--===--___
          \    __=     ___   - \
             _/     o           |
@@ -18,92 +10,95 @@ static TMPL: &'static str = r#"
          \__    \    -   o //
           -===============-       - dan quayle"#;
 
-fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
-    let file = File::open(filename)?;
-    Ok(io::BufReader::new(file).lines())
+const QUOTE_FILES: [&str; 3] = [
+    "./quotes.txt",
+    "/usr/lib/potatoe/quotes.txt",
+    "/var/lib/potatoe/quotes.txt",
+];
+
+unsafe extern "C" {
+    fn ioctl(fd: i32, request: u64, ...) -> i32;
 }
 
-fn show(val: &str, width: usize) -> io::Result<()> {
-    let wrapped = textwrap::wrap(&val, width);
-    let mut f = BufWriter::new(io::stdout().lock());
-    let maxwidth = wrapped.iter().map(|x| x.len()).max().unwrap_or(wrapped[0].len());
-    write!(f, " {}\n","_".repeat(maxwidth+2))?;
-    for (idx,line) in wrapped.iter().enumerate() {
-        if idx == 0 {
-            match wrapped.len() == 1 {
-                true =>f.write_all(b"< "),
-                false =>f.write_all(b"/ "),
-            }?
-        } else if idx == wrapped.len() - 1 {
-            f.write_all(b"\\ ")?;
-        }else {
-            f.write_all(b"| ")?;
+fn terminal_width() -> Option<usize> {
+    let mut ws = [0u16; 4];
+    // TIOCGWINSZ on linux
+    let ok = unsafe { ioctl(1, 0x5413, ws.as_mut_ptr()) } == 0;
+    (ok && ws[1] > 0).then_some(ws[1] as usize)
+}
+
+fn wrap(text: &str, width: usize) -> Vec<String> {
+    let mut lines = vec![String::new()];
+    for word in text.split_whitespace() {
+        let line = lines.last_mut().unwrap();
+        if line.is_empty() {
+            line.push_str(word);
+        } else if line.len() + 1 + word.len() > width {
+            lines.push(word.to_owned());
+        } else {
+            line.push(' ');
+            line.push_str(word);
         }
-        write!(f, "{: <pwidth$}", line, pwidth = maxwidth)?;
-        if idx == 0 {
-            match wrapped.len() == 1 {
-                true =>f.write_all(b" >"),
-                false =>f.write_all(b" \\"),
-            }?
-        } else if idx == wrapped.len() - 1 {
-            f.write_all(b" /")?;
-        }else {
-            f.write_all(b" |")?;
-        }
-        f.write_all(b" \n")?;
     }
-    write!(f, " {}\n{}\n","-".repeat(maxwidth+2),TMPL)?;
+    lines
+}
+
+fn show(quote: &str, width: usize) -> io::Result<()> {
+    let lines = wrap(quote, width);
+    let max = lines.iter().map(String::len).max().unwrap_or(0);
+    let mut f = BufWriter::new(io::stdout().lock());
+    writeln!(f, " {}", "_".repeat(max + 2))?;
+    for (i, line) in lines.iter().enumerate() {
+        let (l, r) = match i {
+            _ if lines.len() == 1 => ("<", ">"),
+            0 => ("/", "\\"),
+            _ if i == lines.len() - 1 => ("\\", "/"),
+            _ => ("|", "|"),
+        };
+        writeln!(f, "{l} {line:<max$} {r}")?;
+    }
+    writeln!(f, " {}{TMPL}", "-".repeat(max + 2))?;
     f.flush()
 }
 
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    let program = args[0].clone();
-    let mut opts = Options::new();
-    opts.optopt("w", "width", "the width", "40");
-    opts.optflag("t", "text", "text-only");
-    opts.optflag("h", "help", "print this help menu");
-    let matches = match opts.parse(&args[1..]) {
-        Ok(m) => { m }
-        Err(f) => { panic!("{}", f.to_string()) }
-    };
-    if matches.opt_present("h") {
-        let str_ref = format!("Usage: {} FILE [options]", program);
-        print!("{}", opts.usage(&str_ref));
-        return;
-    }
-    let text_only = matches.opt_present("t");
-    let mut width: usize = 40;
-    if let Some((w, _h)) = termize::dimensions() {
-        width = ((w as f64)*0.64) as usize;
-    }
-    let mut all_lines: Vec<String> = Vec::new();
-    let file_names = vec![
-        "./quotes.txt",
-        "/usr/lib/potatoe/quotes.txt",
-        "/var/lib/potatoe/quotes.txt",
-    ];
-    for file_name in file_names {
-        if let Ok(lines) = read_lines(file_name) {
-            // Consumes the iterator, returns an (Optional) String
-            for line in lines.flatten() {
-                let trimmed = line.trim().to_owned();
-                if trimmed.starts_with("#") || trimmed.len() == 0 {
-                    continue;
-                }
-                all_lines.push(trimmed);
+    let mut text_only = false;
+    let mut width = None;
+    let mut args = std::env::args().skip(1);
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-t" | "--text" => text_only = true,
+            "-w" | "--width" => width = args.next().and_then(|w| w.parse().ok()),
+            "-h" | "--help" => {
+                println!("usage: potatoe [-t|--text] [-w|--width N]");
+                return;
             }
+            a => match a.strip_prefix("-w=").or(a.strip_prefix("--width=")) {
+                Some(w) => width = w.parse().ok(),
+                None => {
+                    eprintln!("unknown argument: {a}");
+                    std::process::exit(1);
+                }
+            },
         }
     }
-    if all_lines.len() == 0 {
-        all_lines.push("no quotes".to_owned());
+
+    let mut quotes: Vec<String> = QUOTE_FILES
+        .iter()
+        .filter_map(|p| std::fs::read_to_string(p).ok())
+        .flat_map(|s| s.lines().map(str::trim).map(str::to_owned).collect::<Vec<_>>())
+        .filter(|l| l.len() > 4 && !l.starts_with('#'))
+        .collect();
+    if quotes.is_empty() {
+        quotes.push("no quotes".to_owned());
     }
-    let num = rand::rng().random_range(0..all_lines.len());
-    if !text_only {
-        let _ = show(&all_lines[num], width);
+    let idx = RandomState::new().hash_one(0u8) as usize % quotes.len();
+    let quote = &quotes[idx];
+
+    if text_only {
+        println!("{quote}");
         return;
     }
-    println!("{}", all_lines[num]);
+    let width = width.unwrap_or_else(|| (terminal_width().unwrap_or(62) as f64 * 0.64) as usize);
+    let _ = show(quote, width);
 }
-

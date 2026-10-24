@@ -7,13 +7,9 @@ GHC_FLAGS = ${GHCFLAGS}
 potatoe: main.hs
 	ghc main.hs $(GHC_FLAGS) -o potatoe
 
-# not super happy with the deps here.
-# random, directory is fine
-# text is okay
-# terminal-size and word-wrap are bad :( TODO: find an stdlib replacement for this
-
+# text ships with ghc. random is the only non-boot package.
 deps:
-		cabal install --lib --enable-profiling --package-env . random directory text terminal-size word-wrap
+		cabal install --lib --enable-profiling --package-env . random text
 
 
 clean:

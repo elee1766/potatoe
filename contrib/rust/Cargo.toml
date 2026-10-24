@@ -1,15 +1,10 @@
 [package]
 name = "potatoe"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 [dependencies]
-# this library is fine because it is part of stdlib from what i understand
-rand = { version = "0.10" }
-# this is in the rust-lang github org, so its okay to use
-getopts = { version = "0.2.21" }
-# TODO: these two dependencies should be ideally removed.
-# the best would be to find stdlib based replacements.
-termize = { version = "0.1.1" }
-# the worst offender for sure. textwrap not being in stdlib, and non-trivial to implement is a major weakness.
-textwrap = { version = "0.16" }
+
+[profile.release]
+strip = true
+lto = true
